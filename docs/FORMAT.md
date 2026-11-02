@@ -14,9 +14,9 @@ API of the `worldmap` module that `runtime.rs` becomes (`crate::game::worldmap`)
 | `with(get, \|s\| ...)` | The shared `State` (the same one the fullscreen map draws). |
 | `State::map.sample(dim, x, z)` | `0xAARRGGBB` of one block column, `0` if never seen. |
 | `State::map.image(dim, centre, (w, h), blocks_per_pixel)` | A ready minimap image, row by row, `0` for unseen. |
-| `State::list` | Every `Waypoint { name, dim, pos: [x, y, z], rgb }`. |
+| `State::list` | Every `Waypoint { name, dim, pos: [x, y, z], rgb, hidden }`; skip the `hidden` ones. |
 | `State::player` | The player's last `Pos { x, y, z, yaw, dim }`. |
-| `block_color`, `dir_name`, `ZOOMS`, `to_screen`, `to_world` | Shared helpers. |
+| `block_color`, `dir_name`, `ZOOMS`, `to_screen`, `to_world`, `project`, `arrow` | Shared helpers (`project` puts a world point on the screen given a `Camera`). |
 
 Whether a second bundle may name `crate::game::worldmap` depends on how
 horizon-mixins orders two bundles' modules; this has not been tried (see

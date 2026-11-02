@@ -27,7 +27,7 @@ def main():
             assert second == output and not changed and first == snapshot(output)
             plan = json.loads((root/'plan.json').read_text())
             assert plan['schema'] == horizon.COMPAT['mixin_schema']
-            assert len(plan['injections']) == 7 and len(plan['modules']) == 1
+            assert len(plan['injections']) == 13 and len(plan['modules']) == 1
             original = next((root/'original').glob('*/.horizon-mod-template.json')).parent
             audit(original, output, root/'plan.json')
     assert all((checkout/p).read_bytes() == content for p, content in before.items())

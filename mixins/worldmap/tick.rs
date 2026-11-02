@@ -1,8 +1,23 @@
-// Once a tick: scans the blocks around the player into the map and saves it.
+// Once a tick: scans the blocks around the player into the map and saves it,
+// and opens or closes the map's screen when asked.
 fn worldmap_tick(game: &mut crate::game::Game<'_>) {
+    use crate::game::Screen;
     use crate::game::worldmap as m;
-    if !game.native_window() || !game.native_on(m::ID) || !game.native_playing() {
+    if !game.native_window() || !game.native_on(m::ID) {
         return;
+    }
+    let on_map = game.screen == Screen::DebugOptions;
+    let playing = game.screen == Screen::Playing && game.native_playing();
+    let plan = m::with(|k| game.native_setting(m::ID, k), |s| s.plan(on_map, playing));
+    if plan.close {
+        game.close_debug_options();
+        m::with(|k| game.native_setting(m::ID, k), |s| s.closed());
+    }
+    if plan.open {
+        game.toggle_debug_options();
+        if game.screen == Screen::DebugOptions {
+            m::with(|k| game.native_setting(m::ID, k), |s| s.opened());
+        }
     }
     let Some(p) = game.native_player() else {
         return;

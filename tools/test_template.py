@@ -66,15 +66,24 @@ impl Sounds for Audio {
 }
 """,
     'game.rs': """pub mod native_hooks;
+#[derive(Clone, Copy, PartialEq, Eq)]
+pub enum Screen { Playing, DebugOptions }
 pub struct Game<'a> {
+    pub screen: Screen,
     pub ticks: &'a mut u32,
     audio: crate::sound_engine::Audio,
     music: crate::music::MusicManager,
 }
-impl Game<'_> { pub(super) fn gui_size(&self) -> (f32, f32) { (480.0, 270.0) } }
+impl Game<'_> {
+    pub(super) fn gui_size(&self) -> (f32, f32) { (480.0, 270.0) }
+    pub(super) fn eye_position(&self) -> Option<[f64; 3]> { Some([0.0, 65.6, 0.0]) }
+    pub(super) fn fov_degrees(&self, _partial: f32, _camera: [f64; 3]) -> f32 { 70.0 }
+    pub(super) fn toggle_debug_options(&mut self) { self.screen = if self.screen == Screen::Playing { Screen::DebugOptions } else { self.screen }; }
+    pub(super) fn close_debug_options(&mut self) { self.screen = Screen::Playing; }
+}
 #[test] fn original_body_runs_once_per_call() {
     let mut ticks = 0;
-    let mut game = Game { ticks: &mut ticks, audio: Default::default(), music: Default::default() };
+    let mut game = Game { screen: Screen::Playing, ticks: &mut ticks, audio: Default::default(), music: Default::default() };
     game.native_tick();
     game.native_tick();
     assert_eq!(ticks, 2);
@@ -82,6 +91,7 @@ impl Game<'_> { pub(super) fn gui_size(&self) -> (f32, f32) { (480.0, 270.0) } }
 """,
     'game/native_hooks.rs': """use super::Game;
 use crate::{extras::Corner, hud::HudBatch};
+pub struct NativeScreenView<'a> { pub id: &'static str, pub menu: Option<&'a str>, pub rect: [f32; 4], pub mouse: [f32; 2], pub partial_tick: f32 }
 pub struct NativePlayer { pub x: f64, pub y: f64, pub z: f64, pub yaw: f32, pub pitch: f32, pub dimension: &'static str }
 pub struct NativeMod { pub id: String, pub title: String, pub description: String, pub keys: Vec<[String; 3]> }
 impl Game<'_> {
@@ -92,6 +102,12 @@ impl Game<'_> {
     pub(super) fn native_mods(&mut self, mods: &mut Vec<NativeMod>) { let _ = mods; }
     pub(super) fn native_settings(&mut self, mod_id: &str, buttons: &mut Vec<String>) { let _ = (mod_id, buttons); }
     pub(super) fn native_settings_click(&mut self, mod_id: &str, button: usize) { let _ = (mod_id, button); }
+    pub(super) fn native_screen_render_post(&self, batch: &mut HudBatch, screen: &NativeScreenView<'_>) { let _ = (batch, screen); }
+    pub(super) fn native_screen_mouse_button_pressed_pre(&self, screen: &NativeScreenView<'_>, button: i32, modifiers: u32, canceled: &mut bool) { let _ = (screen, button, modifiers, canceled); }
+    pub(super) fn native_screen_mouse_button_released_pre(&self, screen: &NativeScreenView<'_>, button: i32, modifiers: u32, canceled: &mut bool) { let _ = (screen, button, modifiers, canceled); }
+    pub(super) fn native_screen_mouse_scrolled_pre(&self, screen: &NativeScreenView<'_>, scroll: [f64; 2], modifiers: u32, canceled: &mut bool) { let _ = (screen, scroll, modifiers, canceled); }
+    pub(super) fn native_screen_key_pressed_pre(&self, screen: &NativeScreenView<'_>, key: &str, repeat: bool, modifiers: u32, canceled: &mut bool) { let _ = (screen, key, repeat, modifiers, canceled); }
+    pub(super) fn native_screen_char_typed_pre(&self, screen: &NativeScreenView<'_>, c: char, modifiers: u32, canceled: &mut bool) { let _ = (screen, c, modifiers, canceled); }
     pub(super) fn native_window(&self) -> bool { true }
     pub(super) fn native_on(&self, _mod_id: &str) -> bool { true }
     pub(super) fn native_playing(&self) -> bool { true }
@@ -138,7 +154,7 @@ def main():
         base = ['--workspace', str(original), '--mods', str(root/'mixins')]
         report = json.loads(run([str(cli), 'check', *base, '--out', str(stage), '--trust-native-mods']).stdout)
         tests = (root/'mixins/worldmap/runtime.rs').read_text().count('#[test]') + 1
-        assert report['injections'] == len(manifest['injection']) == 7 and report['modules'] == 1
+        assert report['injections'] == len(manifest['injection']) == 13 and report['modules'] == 1
         assert f'{tests} passed' in report['cargo_stdout'], report['cargo_stdout']
         first = snapshot(stage)
         second = json.loads(run([str(cli), 'check', *base, '--out', str(stage), '--trust-native-mods']).stdout)

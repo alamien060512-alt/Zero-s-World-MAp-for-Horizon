@@ -1,5 +1,6 @@
-// World Map's keys: open, zoom, pan, centre and waypoints.
+// World Map's keys while playing: open the map, and the rest of the keys.
 fn worldmap_key(game: &mut crate::game::Game<'_>, key: &str, pressed: bool) {
+    use crate::game::Screen;
     use crate::game::worldmap as m;
     if !pressed || !game.native_playing() || !game.native_on(m::ID) {
         return;
@@ -10,10 +11,18 @@ fn worldmap_key(game: &mut crate::game::Game<'_>, key: &str, pressed: bool) {
     else {
         return;
     };
-    let stored = m::with(|k| game.native_setting(m::ID, k), |s| {
+    let playing = game.screen == Screen::Playing;
+    let plan = m::with(|k| game.native_setting(m::ID, k), |s| {
         s.press(&name);
-        s.stored()
+        s.plan(false, playing)
     });
+    if plan.open {
+        game.toggle_debug_options();
+        if game.screen == Screen::DebugOptions {
+            m::with(|k| game.native_setting(m::ID, k), |s| s.opened());
+        }
+    }
+    let stored = m::with(|k| game.native_setting(m::ID, k), |s| s.changed());
     for (key, value) in stored {
         game.native_set_setting(m::ID, key, &value);
     }
