@@ -14,8 +14,9 @@ horizon-mixins `d9c83d7096b7ea5b83678da2efdfd6161f74997e`.
 | `python3 tools/horizon.py test` / `build` | **Not run** |
 
 No game was launched. Untested in game: block lookups on a real client world,
-the colours, the HUD overlay's size and look, key names (`key.keyboard.equal`,
-`.minus`, arrows, `.home`, `.m`, `.b` follow Overtune's naming but are unchecked),
+the colours, the HUD overlay's size and look, the rebinding screen itself (the default key names `m`, `equal`, `minus`,
+`left`, `right`, `up`, `down`, `home` and `b` were checked to exist in Horizon's
+key table at the pinned revision, but pressing them in game was not),
 saving and loading under the real mod data folder, and whether a second bundle
 can name `crate::game::worldmap` (the minimap Rust API in docs/FORMAT.md).
 Scanning cost per tick (up to one chunk, a few thousand block reads) is

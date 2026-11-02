@@ -36,7 +36,8 @@ Honest limits:
 
 ## Controls
 
-Defaults (rebind in Options > Mods > World Map):
+Press **M** to open and close the map. Every key can be rebound in Options > Mods > World Map
+(Horizon's own mod key list, the same place Overtune's keys live). Defaults:
 
 | Key | Action |
 |---|---|
